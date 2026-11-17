@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STS &amp; Age Correction Calculator</title>
+<meta name="description" content="Standard threshold shift check and OSHA 29 CFR 1910.95 Appendix F age correction for audiologists.">
+<style>
+  :root {
+    --bg: #f5f6f3;
+    --card: #ffffff;
+    --ink: #1d2a2e;
+    --muted: #5d6b70;
+    --line: #dde2df;
+    --accent: #1f5f6b;
+    --accent-soft: #e6f0f1;
+    --right: #c0392b;
+    --left: #2563a8;
+    --yes: #a5331f;
+    --yes-soft: #fbeae6;
+    --no: #2e6b3f;
+    --no-soft: #e7f3ea;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  header {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px 8px;
+  }
+  .cmp { margin: 4px 0 10px; background: #fff; border-radius: 6px; font-variant-numeric: normal; }
+  .cmp th, .cmp td { text-align: left; vertical-align: top; padding: 7px 10px; font-size: 0.88rem; border-bottom: 1px solid var(--line); color: var(--ink); }
+  .cmp thead th { color: var(--accent); font-size: 0.82rem; }
+  .cmp tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; width: 1%; }
+  .cmp tr:last-child th, .cmp tr:last-child td { border-bottom: 0; }
+  .title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .title-row h1 { margin: 0 !important; }
+  header h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); }
+  main { max-width: 960px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 20px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .card-head h2 { margin: 0; font-size: 1.25rem; }
+  .step { color: var(--accent); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+
+  .info-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--accent);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .info-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .info-panel {
+    display: none;
+    margin-top: 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .info-panel.open { display: block; }
+  .info-panel p { margin: 0 0 8px; color: var(--ink); }
+  .info-panel p:last-child { margin-bottom: 0; }
+
+  .ears { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 720px) { .ears { grid-template-columns: 1fr; } }
+  .ear { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .ear h3 { margin: 0 0 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+  .ear.right h3 { color: var(--right); }
+  .ear.left h3 { color: var(--left); }
+
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 4px; text-align: center; font-size: 0.92rem; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+  td.rowlabel, th.rowlabel { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+  tr.sep td { border-top: 1px solid var(--line); }
+  td.avg { font-weight: 700; }
+
+  input[type="number"] {
+    width: 100%;
+    max-width: 68px;
+    padding: 7px 6px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 0.95rem;
+    text-align: center;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+  }
+  input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+  .result {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #f3f4f2;
+    color: var(--muted);
+  }
+  .result.yes { background: var(--yes-soft); color: var(--yes); }
+  .result.no { background: var(--no-soft); color: var(--no); }
+  .result-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .result-pair .result { margin-top: 0; }
+  .rlabel { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
+  .result strong { display: block; font-size: 1.02rem; }
+
+  .fields { display: flex; flex-wrap: wrap; gap: 18px 28px; margin-top: 18px; align-items: flex-end; }
+  .field label { display: block; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .field input[type="number"] { max-width: 90px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button {
+    border: 0; background: #fff; padding: 8px 14px; font: inherit; font-size: 0.92rem; cursor: pointer; color: var(--ink);
+  }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--accent); color: #fff; }
+
+  .note { font-size: 0.85rem; color: var(--muted); margin-top: 10px; }
+  .note.warn { color: var(--yes); }
+  h4 { margin: 20px 0 8px; font-size: 0.95rem; }
+  .allow-table td, .allow-table th { border-bottom: 1px solid var(--line); }
+  .muted-col { color: var(--muted); }
+
+  .actions { margin-top: 16px; }
+  .btn-reset {
+    border: 1px solid var(--line); background: #fff; color: var(--muted);
+    padding: 7px 14px; border-radius: 8px; font: inherit; font-size: 0.9rem; cursor: pointer;
+  }
+  .btn-reset:hover { color: var(--ink); }
+
+  .head-right { display: flex; align-items: center; gap: 14px; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; color: var(--muted); font-weight: 600; user-select: none; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .track { width: 36px; height: 20px; border-radius: 999px; background: #cfd6d3; position: relative; transition: background .15s; flex-shrink: 0; }
+  .switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .switch input:checked + .track { background: var(--accent); }
+  .switch input:checked + .track::after { transform: translateX(16px); }
+  .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 520px) { .switch-label { display: none; } }
+
+  .niosh-col, .niosh-box { display: none; }
+  body.niosh-on .niosh-col { display: table-cell; }
+  body.niosh-on .niosh-box { display: block; margin-top: 8px; }
+  body.niosh-on .ears { grid-template-columns: 1fr; }
+  .table-wrap { overflow-x: auto; }
+  .avg-note { margin-top: 4px; }
+  body:not(.niosh-on) .avg-note { display: none; }
+  .niosh-box.flag { background: #fdf3e1; color: #8a5a00; }
+
+  .next-status { padding: 12px 14px; border-radius: 8px; margin-top: 16px; }
+  .next-basis { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  .rec { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  @media (max-width: 720px) { .rec { grid-template-columns: 1fr; } }
+  .checklist { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+  .checklist li label { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 0.95rem; }
+  .checklist input { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+  .checklist li label:has(input:checked) { background: #f3f6f4; color: var(--muted); }
+  .cite { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+  .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+  .tree { margin-top: 12px; }
+  .tree > li { margin: 6px 0; }
+  .tree ul { margin-left: 12px; }
+  .tree ul > li { position: relative; padding: 4px 0 4px 22px; }
+  .tree ul > li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--line); }
+  .tree ul > li:last-child::before { bottom: auto; height: 22px; }
+  .tree ul > li::after { content: ""; position: absolute; left: 0; top: 22px; width: 16px; border-top: 2px solid var(--line); }
+  .t-q { display: inline-flex; gap: 8px; align-items: flex-start; font-weight: 600; font-size: 0.95rem; background: var(--accent-soft); color: var(--ink); padding: 8px 12px; border-radius: 8px; }
+  .t-icon { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .t-q .cite { font-weight: 400; }
+  .t-br { display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); background: #fff; border: 1px solid var(--accent); padding: 3px 9px; border-radius: 999px; margin-top: 12px; }
+  .t-a { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.95rem; background: #fff; }
+  .t-num { flex-shrink: 0; min-width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent); color: var(--accent); font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .fu-box { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 16px; margin-top: 18px; }
+  .fu-box.niosh-fu { border-left: 4px solid #d9a441; }
+  .fu-head { font-weight: 700; font-size: 1rem; }
+  .fu-head .cite { font-weight: 400; margin-left: 6px; }
+  .fu-sub { font-size: 0.9rem; color: #8a5a00; margin-top: 4px; }
+  .t-e { font-size: 0.92rem; color: var(--muted); padding: 6px 2px; }
+
+  footer { max-width: 960px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 0.85rem; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>STS &amp; Age Correction Calculator</h1>
+    <button class="info-btn" data-target="whyInfo" aria-expanded="false" aria-label="Why check for a threshold shift">i</button>
+  </div>
+  <p>Standard threshold shift check with optional OSHA age correction (29 CFR 1910.95, Appendix F).</p>
+  <div class="info-panel" id="whyInfo">
+    <p><strong>Why check for a threshold shift?</strong></p>
+    <p>Employees exposed to noise at or above an 8-hour average of 85 dBA must be in a hearing conservation program. That means a baseline audiogram and a new audiogram every year (29 CFR 1910.95). Comparing each annual audiogram with the baseline catches noise-induced hearing loss early, while there's still time to keep it from getting worse.</p>
+    <p>A standard threshold shift (STS) is what triggers action under OSHA. The employee must be told in writing, hearing protection must be refit and the employee retrained, and the employee may need a referral. Some STS cases also have to be recorded on the OSHA 300 log. Hearing can change with age, so OSHA lets you subtract an expected age-related allowance before deciding whether a shift is from noise.</p>
+    <p><strong>OSHA vs. NIOSH</strong></p>
+    <p><strong>OSHA</strong> (Occupational Safety and Health Administration) is the federal agency, part of the U.S. Department of Labor, that sets and enforces workplace safety and health standards. Its noise standard is law for covered employers.</p>
+    <p><strong>NIOSH</strong> (National Institute for Occupational Safety and Health) is the federal research agency, part of the CDC in the Department of Health and Human Services, that studies work-related injury and illness and makes recommendations to prevent them. It is not a regulatory agency, so its recommendations aren't legally enforceable. For noise, NIOSH recommends a lower exposure limit than OSHA (85 dBA vs. 90 dBA over 8 hours).</p>
+    <p>Both agencies were created by the Occupational Safety and Health Act of 1970.</p>
+    <table class="cmp">
+      <thead><tr><th></th><th>OSHA STS</th><th>NIOSH significant threshold shift</th></tr></thead>
+      <tbody>
+        <tr><th>Status</th><td>Federal regulation; required (29 CFR 1910.95)</td><td>Recommended standard; not enforceable (NIOSH 98-126)</td></tr>
+        <tr><th>Shift</th><td>Average change of 10 dB or more</td><td>Change of 15 dB or more at any single frequency</td></tr>
+        <tr><th>Frequencies</th><td>2000, 3000 and 4000 Hz, averaged</td><td>500, 1000, 2000, 3000, 4000 or 6000 Hz</td></tr>
+        <tr><th>Confirmation</th><td>Optional retest within 30 days</td><td>Immediate retest, then a confirmation test within 30 days at the same frequency in the same ear</td></tr>
+        <tr><th>Age correction</th><td>Allowed (Appendix F)</td><td>Not used</td></tr>
+      </tbody>
+    </table>
+    <p>Because it looks at single frequencies across a wider range, the NIOSH criterion tends to flag shifts earlier than OSHA's. Turn on NIOSH comparison in Step 1 to see both.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ STEP 1: STS CHECK ============ -->
+  <section class="card" id="stsCard">
+    <div class="card-head">
+      <div>
+        <div class="step">Step 1</div>
+        <h2>STS Check</h2>
+      </div>
+      <div class="head-right">
+        <label class="switch"><input type="checkbox" id="nioshToggle"><span class="track"></span><span class="switch-label">NIOSH comparison</span></label>
+        <button class="info-btn" data-target="stsInfo" aria-expanded="false" aria-label="About the STS check">i</button>
+      </div>
+    </div>
+    <div class="info-panel" id="stsInfo">
+      <p>Compares the current audiogram with the baseline at 2000, 3000 and 4000 Hz in each ear. A standard threshold shift (STS) is an average change of 10 dB or more at those frequencies.</p>
+      <p>If either ear shows an STS, use Step 2 to see whether it remains after age correction.</p>
+      <p>NIOSH comparison adds 500, 1000 and 6000 Hz and flags a change of 15 dB or more at any single frequency (500–6000 Hz) in either ear. NIOSH requires the shift to be confirmed by a second test at the same frequency in the same ear, and does not use age correction.</p>
+    </div>
+
+    <div class="ears">
+      <div class="ear right" data-ear="R">
+        <h3>Right ear</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th class="rowlabel"></th><th class="niosh-col">500</th><th class="niosh-col">1000</th><th>2000</th><th>3000</th><th>4000</th><th class="niosh-col">6000</th><th>Avg</th></tr></thead>
+          <tbody>
+            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr class="sep"><td class="rowlabel">Change</td><td class="niosh-col" id="R-d-500">–</td><td class="niosh-col" id="R-d-1000">–</td><td id="R-d-2000">–</td><td id="R-d-3000">–</td><td id="R-d-4000">–</td><td class="niosh-col" id="R-d-6000">–</td><td class="avg" id="R-d-avg">–</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz.</div>
+        <div class="result-pair"><div class="result" id="R-result"></div><div class="result" id="R-result-x"></div></div>
+        <div class="result niosh-box" id="R-niosh"></div>
+      </div>
+      <div class="ear left" data-ear="L">
+        <h3>Left ear</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th class="rowlabel"></th><th class="niosh-col">500</th><th class="niosh-col">1000</th><th>2000</th><th>3000</th><th>4000</th><th class="niosh-col">6000</th><th>Avg</th></tr></thead>
+          <tbody>
+            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr class="sep"><td class="rowlabel">Change</td><td class="niosh-col" id="L-d-500">–</td><td class="niosh-col" id="L-d-1000">–</td><td id="L-d-2000">–</td><td id="L-d-3000">–</td><td id="L-d-4000">–</td><td class="niosh-col" id="L-d-6000">–</td><td class="avg" id="L-d-avg">–</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz.</div>
+        <div class="result-pair"><div class="result" id="L-result"></div><div class="result" id="L-result-x"></div></div>
+        <div class="result niosh-box" id="L-niosh"></div>
+      </div>
+    </div>
+
+    <div class="actions"><button class="btn-reset" id="resetBtn" type="button">Clear all</button></div>
+  </section>
+
+  <!-- ============ STEP 2: AGE CORRECTION ============ -->
+  <section class="card" id="ageCard">
+    <div class="card-head">
+      <div>
+        <div class="step">Step 2</div>
+        <h2>Age Correction</h2>
+      </div>
+      <button class="info-btn" data-target="ageInfo" aria-expanded="false" aria-label="About age correction">i</button>
+    </div>
+    <div class="info-panel" id="ageInfo">
+      <p>Age correction is optional under OSHA Appendix F. The aging allowance is the table value at the current age minus the value at the baseline age, from Table F-1 (male) or Table F-2 (female). It's subtracted from the current thresholds before the shift is recalculated.</p>
+      <p>Ages 20 and under use the "20 or younger" row; ages 60 and over use the "60 or older" row.</p>
+    </div>
+
+    <div id="ageBody">
+      <div class="fields">
+        <div class="field">
+          <label>Table</label>
+          <div class="seg" role="group" aria-label="Sex">
+            <button type="button" data-sex="M">Male (F-1)</button>
+            <button type="button" data-sex="F">Female (F-2)</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ageBase">Age at baseline</label>
+          <input type="number" id="ageBase" inputmode="numeric" min="1" max="120" step="1">
+        </div>
+        <div class="field">
+          <label for="ageCur">Age at current test</label>
+          <input type="number" id="ageCur" inputmode="numeric" min="1" max="120" step="1">
+        </div>
+      </div>
+      <div class="note" id="ageNote"></div>
+
+      <div id="ageOutput" hidden>
+        <h4>Aging allowance (dB)</h4>
+        <table class="allow-table">
+          <thead><tr><th class="rowlabel"></th><th>1000</th><th>2000</th><th>3000</th><th>4000</th><th>6000</th></tr></thead>
+          <tbody>
+            <tr><td class="rowlabel" id="lblCur">Current age</td><td id="c-1000"></td><td id="c-2000"></td><td id="c-3000"></td><td id="c-4000"></td><td id="c-6000"></td></tr>
+            <tr><td class="rowlabel" id="lblBase">Baseline age</td><td id="b-1000"></td><td id="b-2000"></td><td id="b-3000"></td><td id="b-4000"></td><td id="b-6000"></td></tr>
+            <tr><td class="rowlabel"><strong>Allowance</strong></td><td id="a-1000" class="muted-col"></td><td id="a-2000"></td><td id="a-3000"></td><td id="a-4000"></td><td id="a-6000" class="muted-col"></td></tr>
+          </tbody>
+        </table>
+        <div class="note">Only 2000, 3000 and 4000 Hz count toward the STS.</div>
+
+        <div class="ears">
+          <div class="ear right">
+            <h3>Right ear, age-corrected</h3>
+            <table>
+              <thead><tr><th class="rowlabel"></th><th>2000</th><th>3000</th><th>4000</th><th>Avg</th></tr></thead>
+              <tbody>
+                <tr><td class="rowlabel">Current</td><td id="R-c-2000"></td><td id="R-c-3000"></td><td id="R-c-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">− Allowance</td><td id="R-a-2000"></td><td id="R-a-3000"></td><td id="R-a-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">Adjusted</td><td id="R-j-2000"></td><td id="R-j-3000"></td><td id="R-j-4000"></td><td></td></tr>
+                <tr class="sep"><td class="rowlabel">Change</td><td id="R-x-2000"></td><td id="R-x-3000"></td><td id="R-x-4000"></td><td class="avg" id="R-x-avg"></td></tr>
+              </tbody>
+            </table>
+            <div class="result-pair"><div class="result" id="R-cresult"></div><div class="result" id="R-cresult-x"></div></div>
+          </div>
+          <div class="ear left">
+            <h3>Left ear, age-corrected</h3>
+            <table>
+              <thead><tr><th class="rowlabel"></th><th>2000</th><th>3000</th><th>4000</th><th>Avg</th></tr></thead>
+              <tbody>
+                <tr><td class="rowlabel">Current</td><td id="L-c-2000"></td><td id="L-c-3000"></td><td id="L-c-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">− Allowance</td><td id="L-a-2000"></td><td id="L-a-3000"></td><td id="L-a-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">Adjusted</td><td id="L-j-2000"></td><td id="L-j-3000"></td><td id="L-j-4000"></td><td></td></tr>
+                <tr class="sep"><td class="rowlabel">Change</td><td id="L-x-2000"></td><td id="L-x-3000"></td><td id="L-x-4000"></td><td class="avg" id="L-x-avg"></td></tr>
+              </tbody>
+            </table>
+            <div class="result-pair"><div class="result" id="L-cresult"></div><div class="result" id="L-cresult-x"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3: NEXT STEPS ============ -->
+  <section class="card" id="nextCard">
+    <div class="card-head">
+      <div>
+        <div class="step">Step 3</div>
+        <h2>Next Steps</h2>
+      </div>
+      <button class="info-btn" data-target="nextInfo" aria-expanded="false" aria-label="About next steps">i</button>
+    </div>
+    <div class="info-panel" id="nextInfo">
+      <p>Follow-up required by OSHA 29 CFR 1910.95 when an STS is found, plus the OSHA 300 log recordability check from 29 CFR 1904.10.</p>
+      <p>Uses the age-corrected result when Step 2 is filled in, otherwise the uncorrected result. The 25 dB recordability check always uses the uncorrected current thresholds, because OSHA doesn't allow age correction for that part.</p>
+    </div>
+    <div id="nextBody"></div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Age correction values from OSHA 29 CFR 1910.95 Appendix F, Tables F-1 and F-2 (<a href="https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.95AppF" target="_blank" rel="noopener">osha.gov</a>). Appendix F is non-mandatory.</p>
+  <p>NIOSH comparison based on NIOSH, <em>Criteria for a Recommended Standard: Occupational Noise Exposure, Revised Criteria 1998</em>, DHHS (NIOSH) Publication No. 98-126 (<a href="https://www.cdc.gov/niosh/docs/98-126/" target="_blank" rel="noopener">cdc.gov</a>).</p>
+  <p><strong>This tool supports, and does not replace, professional review.</strong></p>
+  <p>Built by <a href="mailto:hoopieprojectdatabase@gmail.com">Margaret Ball, AuD</a></p>
+</footer>
+
+<script>
+/* ---------- OSHA 29 CFR 1910.95 Appendix F ----------
+   Rows: index 0 = "20 or younger", index 40 = "60 or older".
+   Columns: 1000, 2000, 3000, 4000, 6000 Hz.            */
+const FREQS = [1000, 2000, 3000, 4000, 6000];
+const STS_FREQS = [2000, 3000, 4000];
+const ALL_FREQS = [500, 1000, 2000, 3000, 4000, 6000];
+
+const TABLE_F1_MALE = [
+  [5,3,4,5,8],[5,3,4,5,8],[5,3,4,5,8],[5,3,4,6,9],[5,3,5,6,9],
+  [5,3,5,7,10],[5,4,5,7,10],[5,4,6,7,11],[6,4,6,8,11],[6,4,6,8,12],
+  [6,4,6,9,12],[6,4,7,9,13],[6,5,7,10,14],[6,5,7,10,14],[6,5,8,11,15],
+  [7,5,8,11,15],[7,5,9,12,16],[7,6,9,12,17],[7,6,9,13,17],[7,6,10,14,18],
+  [7,6,10,14,19],[7,6,10,14,20],[8,7,11,16,20],[8,7,12,16,21],[8,7,12,17,22],
+  [8,7,13,18,23],[8,8,13,19,24],[8,8,14,19,24],[9,8,14,20,25],[9,9,15,21,26],
+  [9,9,16,22,27],[9,9,16,23,28],[9,10,17,24,29],[9,10,18,25,30],[10,10,18,26,31],
+  [10,11,19,27,32],[10,11,20,28,34],[10,11,21,29,35],[10,12,22,31,36],[11,12,22,32,37],
+  [11,13,23,33,38]
+];
+const TABLE_F2_FEMALE = [
+  [7,4,3,3,6],[7,4,4,3,6],[7,4,4,4,6],[7,5,4,4,7],[7,5,4,4,7],
+  [8,5,4,4,7],[8,5,5,4,8],[8,5,5,5,8],[8,5,5,5,8],[8,5,5,5,9],
+  [8,6,5,5,9],[8,6,6,5,9],[9,6,6,6,10],[9,6,6,6,10],[9,6,6,6,10],
+  [9,6,7,7,11],[9,7,7,7,11],[9,7,7,7,12],[10,7,7,7,12],[10,7,8,8,12],
+  [10,7,8,8,13],[10,8,8,8,13],[10,8,9,9,13],[11,8,9,9,14],[11,8,9,9,14],
+  [11,8,10,10,15],[11,9,10,10,15],[11,9,10,11,16],[12,9,11,11,16],[12,9,11,11,16],
+  [12,10,11,12,17],[12,10,12,12,17],[12,10,12,13,18],[13,10,13,13,18],[13,11,13,14,19],
+  [13,11,14,14,19],[13,11,14,15,20],[13,11,15,15,20],[14,12,15,16,21],[14,12,16,16,21],
+  [14,12,16,17,22]
+];
+
+function rowFor(table, age) {
+  const idx = Math.min(Math.max(age, 20), 60) - 20;
+  const row = table[idx];
+  const out = {};
+  FREQS.forEach((f, i) => out[f] = row[i]);
+  return out;
+}
+function rowLabel(age) {
+  if (age <= 20) return "20 or younger";
+  if (age >= 60) return "60 or older";
+  return String(age);
+}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const num = v => (v === "" || v === null || isNaN(Number(v))) ? null : Number(v);
+const signed = n => (n > 0 ? "+" : "") + n;
+const fmtAvg = n => { const r = Math.round(n * 100) / 100; return (r > 0 ? "+" : "") + r.toFixed(2) + " dB"; };
+
+function readEar(ear) {
+  const data = { base: {}, cur: {} };
+  document.querySelectorAll(`#stsCard input[data-ear="${ear}"]`).forEach(inp => {
+    data[inp.dataset.test][inp.dataset.f] = num(inp.value);
+  });
+  data.complete = STS_FREQS.every(f => data.base[f] !== null && data.cur[f] !== null);
+  return data;
+}
+
+function _unusedSetResult(el, state, title, detail) {
+  el.className = "result" + (state ? " " + state : "");
+  el.innerHTML = title ? `<strong>${title}</strong>${detail || ""}` : detail;
+}
+
+/* ---------- state ---------- */
+let sex = null;
+const stsState = { R: null, L: null };   // {data, sum, avg, sts}
+let ageState = null;                       // {R, L} age-corrected results, or null
+const nioshState = { R: null, L: null };
+
+/* ---------- Step 1 ---------- */
+// Two decision methods, shown side by side:
+//   rounded: average rounded to 2 decimals, STS if >= 10.00
+//   exact:   unrounded average, STS if >= 10
+const round2 = n => Math.round(n * 100) / 100;
+const METHODS = {
+  r: { label: "Rounded to 2 decimals", value: avg => round2(avg), show: avg => fmtAvg(avg) },
+  x: { label: "Exact (no rounding)",   value: avg => avg,         show: (avg, sum) => fmtExact(avg, sum) }
+};
+function fmtExact(avg, sum) {
+  const t = Math.abs(avg).toFixed(6).replace(/\.?0+$/, "");
+  const repeats = Math.abs(avg * 1e6 - Math.round(avg * 1e6)) > 1e-7;
+  return (avg > 0 ? "+" : avg < 0 ? "−" : "") + t + (repeats ? "…" : "") + " dB (" + signed(Number(sum.toFixed(6))) + " ÷ 3)";
+}
+function box(el, state, label, title, detail) {
+  el.className = "result" + (state ? " " + state : "");
+  el.innerHTML = `<span class="rlabel">${label}</span>` + (title ? `<strong>${title}</strong>` : "") + detail;
+}
+
+function calcSTS() {
+  ["R", "L"].forEach(ear => {
+    const d = readEar(ear);
+    ALL_FREQS.forEach(f => {
+      $(`${ear}-d-${f}`).textContent = (d.base[f] !== null && d.cur[f] !== null) ? signed(d.cur[f] - d.base[f]) : "–";
+    });
+    calcNIOSH(ear, d);
+    if (!d.complete) {
+      $(`${ear}-d-avg`).textContent = "–";
+      ["r", "x"].forEach(m => box($(`${ear}-result${m === "x" ? "-x" : ""}`), "", METHODS[m].label, "", "Enter baseline and current thresholds."));
+      stsState[ear] = null;
+      return;
+    }
+    const sum = STS_FREQS.reduce((acc, f) => acc + (d.cur[f] - d.base[f]), 0);
+    const avg = sum / 3;
+    $(`${ear}-d-avg`).textContent = fmtAvg(avg);
+    const sts = {};
+    ["r", "x"].forEach(m => {
+      sts[m] = METHODS[m].value(avg) >= 10;
+      box($(`${ear}-result${m === "x" ? "-x" : ""}`), sts[m] ? "yes" : "no", METHODS[m].label,
+        sts[m] ? "STS present" : "No STS",
+        `Average change ${METHODS[m].show(avg, sum)}`);
+    });
+    stsState[ear] = { data: d, sum, avg, sts };
+  });
+  calcAge();
+}
+
+/* ---------- Step 2 ---------- */
+function calcAge() { calcAgeInner(); renderNext(); }
+
+function calcAgeInner() {
+  ageState = null;
+  const out = $("ageOutput");
+  const note = $("ageNote");
+  const aBase = num($("ageBase").value);
+  const aCur = num($("ageCur").value);
+  note.className = "note";
+  note.textContent = "";
+
+  if (!sex || aBase === null || aCur === null) {
+    out.hidden = true;
+    note.textContent = "Choose a table and enter both ages.";
+    return;
+  }
+  if (!Number.isInteger(aBase) || !Number.isInteger(aCur) || aBase < 1 || aCur < 1) {
+    out.hidden = true;
+    note.className = "note warn";
+    note.textContent = "Enter ages as whole years.";
+    return;
+  }
+  if (aCur < aBase) {
+    out.hidden = true;
+    note.className = "note warn";
+    note.textContent = "Age at the current test can't be younger than age at baseline.";
+    return;
+  }
+
+  const table = sex === "M" ? TABLE_F1_MALE : TABLE_F2_FEMALE;
+  const cRow = rowFor(table, aCur);
+  const bRow = rowFor(table, aBase);
+  const allow = {};
+  FREQS.forEach(f => {
+    allow[f] = cRow[f] - bRow[f];
+    $(`c-${f}`).textContent = cRow[f];
+    $(`b-${f}`).textContent = bRow[f];
+    $(`a-${f}`).textContent = allow[f];
+  });
+  $("lblCur").textContent = `Age ${rowLabel(aCur)}`;
+  $("lblBase").textContent = `Age ${rowLabel(aBase)}`;
+
+  const clampNotes = [];
+  if (aBase <= 20 || aCur <= 20) clampNotes.push(`ages 20 and under use the "20 or younger" row`);
+  if (aBase >= 60 || aCur >= 60) clampNotes.push(`ages 60 and over use the "60 or older" row`);
+  if (clampNotes.length) note.textContent = "Note: " + clampNotes.join("; ") + ".";
+
+  ["R", "L"].forEach(ear => {
+    const s = stsState[ear];
+    if (!s) {
+      STS_FREQS.forEach(f => ["c","a","j","x"].forEach(k => $(`${ear}-${k}-${f}`).textContent = "–"));
+      $(`${ear}-x-avg`).textContent = "–";
+      ["r", "x"].forEach(m => box($(`${ear}-cresult${m === "x" ? "-x" : ""}`), "", METHODS[m].label, "", "Thresholds incomplete in Step 1."));
+      return;
+    }
+    let sum = 0;
+    ageState = ageState || {};
+    STS_FREQS.forEach(f => {
+      const adj = s.data.cur[f] - allow[f];
+      const chg = adj - s.data.base[f];
+      sum += chg;
+      $(`${ear}-c-${f}`).textContent = s.data.cur[f];
+      $(`${ear}-a-${f}`).textContent = allow[f];
+      $(`${ear}-j-${f}`).textContent = adj;
+      $(`${ear}-x-${f}`).textContent = signed(chg);
+    });
+    const avg = sum / 3;
+    $(`${ear}-x-avg`).textContent = fmtAvg(avg);
+    ageState[ear] = { sum, avg, sts: { r: round2(avg) >= 10, x: avg >= 10 } };
+    ["r", "x"].forEach(m => {
+      const M = METHODS[m];
+      const sts = M.value(avg) >= 10;
+      let title;
+      if (!s.sts[m]) title = "No STS before correction";
+      else if (sts) title = "STS remains after age correction";
+      else title = "No STS after age correction";
+      const detail = s.sts[m]
+        ? `Uncorrected ${M.show(s.avg, s.sum)}<br>Corrected ${M.show(avg, sum)}`
+        : `Corrected ${M.show(avg, sum)}`;
+      box($(`${ear}-cresult${m === "x" ? "-x" : ""}`), sts ? "yes" : "no", M.label, title, detail);
+    });
+  });
+  out.hidden = false;
+}
+
+
+/* ---------- NIOSH comparison ----------
+   Significant threshold shift: 15 dB or more at any single frequency
+   (500–6000 Hz) in either ear, confirmed by a second test at the same
+   frequency in the same ear. No age correction.                       */
+function calcNIOSH(ear, d) {
+  const el = $(`${ear}-niosh`);
+  const tested = ALL_FREQS.filter(f => d.base[f] !== null && d.cur[f] !== null);
+  const label = `<span class="rlabel">NIOSH (15 dB at any frequency)</span>`;
+  if (!tested.length) {
+    el.className = "result niosh-box";
+    el.innerHTML = label + "Enter thresholds at 500–6000 Hz.";
+    nioshState[ear] = null;
+    return;
+  }
+  const hits = tested.filter(f => d.cur[f] - d.base[f] >= 15);
+  const missing = ALL_FREQS.length - tested.length;
+  const partial = missing ? ` Based on ${tested.length} of 6 frequencies.` : "";
+  if (hits.length) {
+    el.className = "result niosh-box flag";
+    el.innerHTML = label + `<strong>15 dB shift at ${hits.join(", ")} Hz</strong>Confirm with a retest at the same frequency in the same ear.${partial} <span class="cite">(NIOSH 98-126)</span>`;
+  } else {
+    el.className = "result niosh-box no";
+    el.innerHTML = label + `<strong>No 15 dB shift</strong>No single frequency changed by 15 dB or more.${partial}`;
+  }
+  nioshState[ear] = { hits, tested };
+}
+
+
+/* ---------- follow-up decision tree (29 CFR 1910.95) ---------- */
+const cs = c => c ? ` <span class="cite">${c}</span>` : "";
+let stepNo = 0;
+const T = {
+  q: (text, cite, kids) => `<li><div class="t-q"><span class="t-icon">?</span><span>${text}${cs(cite)}</span></div><ul>${kids.join("")}</ul></li>`,
+  b: (label, kids) => `<li><span class="t-br">${label}</span><ul>${kids.join("")}</ul></li>`,
+  a: (text, cite) => `<li><div class="t-a"><span class="t-num">${++stepNo}</span><span>${text}${cs(cite)}</span></div></li>`,
+  e: text => `<li><div class="t-e">${text}</div></li>`
+};
+function nioshTree() {
+  stepNo = 0;
+  const c = "(NIOSH 98-126)";
+  return `<ul class="tree">` + [
+    T.a("Optional: retest immediately.", c),
+    T.q("Does the 15 dB shift still show on the immediate retest?", "", [
+      T.b("No", [ T.e("No NIOSH significant threshold shift. Continue annual testing.") ]),
+      T.b("Yes", [
+        T.a("Notify the employee immediately.", c),
+        T.a("Schedule a confirmation audiogram within 30 days.", c),
+        T.q("Does the confirmation audiogram show the shift at the same frequency in the same ear?", "", [
+          T.b("No", [ T.e("Not a NIOSH significant threshold shift.") ]),
+          T.b("Yes", [ T.e("Confirmed NIOSH significant threshold shift.") ])
+        ])
+      ])
+    ])
+  ].join("") + `</ul>`;
+}
+
+function followUpTree() {
+  stepNo = 0;
+  return `<ul class="tree">` + [
+    T.a("Optional: retest within 30 days. The retest may be used as the annual audiogram.", "(g)(7)(ii)"),
+    T.q("Does the STS still show (on the retest, or with no retest)?", "", [
+      T.b("No", [ T.e("The retest stands as the annual audiogram. No STS follow-up is needed.") ]),
+      T.b("Yes", [
+        T.a("Notify the employee in writing within 21 days of the determination.", "(g)(8)(i)"),
+        T.a("Make sure hearing protectors reduce exposure to a TWA of 85 dB or below.", "(j)(3)"),
+        T.q("Has a physician determined the STS isn't work-related or aggravated by occupational noise?", "(g)(8)(ii)", [
+          T.b("Yes", [ T.e("Steps (A)–(D) aren't required.") ]),
+          T.b("No", [
+            T.q("Is the employee already wearing hearing protectors?", "", [
+              T.b("No", [ T.a("Fit hearing protectors, train the employee, and require their use.", "(g)(8)(ii)(A)") ]),
+              T.b("Yes", [ T.a("Refit and retrain, and provide protectors with more attenuation if needed.", "(g)(8)(ii)(B)") ])
+            ]),
+            T.q("Is an ear condition suspected, or is more testing needed?", "", [
+              T.b("Caused or made worse by hearing protectors, or more testing needed", [ T.a("Refer for a clinical audiological evaluation or otological exam.", "(g)(8)(ii)(C)") ]),
+              T.b("Unrelated to hearing protectors", [ T.a("Tell the employee they need an otological exam.", "(g)(8)(ii)(D)") ]),
+              T.b("No", [ T.e("No referral needed.") ])
+            ])
+          ])
+        ]),
+        T.q("What does later testing show?", "", [
+          T.b("STS persists", [ T.a("The reviewing audiologist, otolaryngologist or physician may revise the baseline.", "(g)(9)") ]),
+          T.b("Significant improvement", [ T.a("The reviewing audiologist, otolaryngologist or physician may revise the baseline.", "(g)(9)") ]),
+          T.b("STS not persistent, exposure below TWA 90 dB", [ T.a("Tell the employee about the new interpretation. Hearing protector use may be stopped.", "(g)(8)(iii)") ])
+        ])
+      ])
+    ])
+  ].join("") + `</ul>`;
+}
+
+/* ---------- Step 3: next steps ---------- */
+const EAR_NAME = { R: "right ear", L: "left ear" };
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+function item(text, cite) {
+  return `<li><label><input type="checkbox"><span>${text}${cite ? ` <span class="cite">${cite}</span>` : ""}</span></label></li>`;
+}
+function renderNext() {
+  const body = $("nextBody");
+  const ears = ["R", "L"].filter(e => stsState[e]);
+  const nioshOn = document.body.classList.contains("niosh-on");
+  const nioshEars = nioshOn ? ["R", "L"].filter(e => nioshState[e] && nioshState[e].hits.length) : [];
+
+  if (!ears.length && !nioshEars.length) {
+    body.innerHTML = `<p class="note" style="margin-top:14px">Enter thresholds in Step 1.</p>`;
+    return;
+  }
+
+  const corrected = !!ageState;
+  const final = {};
+  ears.forEach(e => final[e] = corrected && ageState[e] ? ageState[e].sts.r : stsState[e].sts.r);
+  const stsEars = ears.filter(e => final[e]);
+  const basis = corrected ? "Based on the age-corrected result (rounded to 2 decimals)." : "Based on the uncorrected result (rounded to 2 decimals). Fill in Step 2 to use age correction.";
+
+  let html = "";
+  if (ears.length) {
+    if (stsEars.length) {
+      html += `<div class="result yes next-status"><strong>STS in the ${stsEars.map(e => EAR_NAME[e]).join(" and ")}</strong>Follow-up under 29 CFR 1910.95 is required unless a physician determines the STS isn't work-related or aggravated by occupational noise.</div>`;
+    } else {
+      html += `<div class="result no next-status"><strong>No OSHA STS</strong>No follow-up under 1910.95(g)(8) is triggered. Continue annual audiometry.</div>`;
+    }
+    html += `<div class="next-basis">${basis}</div>`;
+  }
+
+  if (stsEars.length) {
+    html += `<h4>OSHA 300 log recordability</h4><div class="rec">`;
+    stsEars.forEach(e => {
+      const cur = stsState[e].data.cur;
+      const lvl = round2(STS_FREQS.reduce((a, f) => a + cur[f], 0) / 3);
+      const rec = lvl >= 25;
+      html += `<div class="result ${rec ? "yes" : "no"}" style="margin-top:0"><span class="rlabel">${cap(EAR_NAME[e])}</span><strong>${rec ? "Recordable if work-related" : "Not recordable"}</strong>Current hearing level ${lvl.toFixed(2)} dB HL at 2000, 3000 and 4000 Hz (${rec ? "25 dB or more" : "below 25 dB"}; never age-corrected).</div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="fu-box"><div class="fu-head">OSHA follow-up <span class="cite">29 CFR 1910.95</span></div>` + followUpTree() + `</div>`;
+  }
+
+  if (nioshEars.length) {
+    const desc = nioshEars.map(e => `${EAR_NAME[e]} (${nioshState[e].hits.join(", ")} Hz)`).join("; ");
+    html += `<div class="fu-box niosh-fu"><div class="fu-head">NIOSH follow-up <span class="cite">NIOSH 98-126</span></div>`
+      + `<div class="fu-sub">15 dB shift: ${desc}. NIOSH doesn't use age correction.</div>` + nioshTree() + `</div>`;
+  }
+  body.innerHTML = html;
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll("#stsCard input").forEach(i => i.addEventListener("input", calcSTS));
+["ageBase", "ageCur"].forEach(id => $(id).addEventListener("input", calcAge));
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  sex = b.dataset.sex;
+  document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
+  calcAge();
+}));
+
+// Info panels: one open at a time, active highlight
+document.querySelectorAll(".info-btn").forEach(btn => btn.addEventListener("click", () => {
+  const target = $(btn.dataset.target);
+  const opening = !target.classList.contains("open");
+  document.querySelectorAll(".info-panel").forEach(p => p.classList.remove("open"));
+  document.querySelectorAll(".info-btn").forEach(b => { b.classList.remove("active"); b.setAttribute("aria-expanded", "false"); });
+  if (opening) { target.classList.add("open"); btn.classList.add("active"); btn.setAttribute("aria-expanded", "true"); }
+}));
+
+// Enter moves to the next field instead of doing nothing
+const order = [...document.querySelectorAll("input[type=number]")];
+order.forEach((inp, i) => inp.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); const nx = order.slice(i + 1).find(n => n.offsetParent !== null); if (nx) nx.focus(); else inp.blur(); }
+}));
+
+$("nioshToggle").addEventListener("change", e => {
+  document.body.classList.toggle("niosh-on", e.target.checked);
+  renderNext();
+});
+
+$("resetBtn").addEventListener("click", () => {
+  order.forEach(i => i.value = "");
+  sex = null;
+  document.querySelectorAll(".seg button").forEach(x => x.classList.remove("on"));
+  calcSTS();
+});
+
+calcSTS();
+</script>
+</body>
+</html>
