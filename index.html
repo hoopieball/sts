@@ -171,7 +171,8 @@
   body.niosh-on .ears { grid-template-columns: 1fr; }
   .table-wrap { overflow-x: auto; }
   .avg-note { margin-top: 4px; }
-  body:not(.niosh-on) .avg-note { display: none; }
+  input.avg-in { font-weight: 700; border-color: var(--accent); }
+  input.avg-in.auto { background: var(--accent-soft); }
   .niosh-box.flag { background: #fdf3e1; color: #8a5a00; }
 
   .next-status { padding: 12px 14px; border-radius: 8px; margin-top: 16px; }
@@ -265,12 +266,12 @@
         <div class="table-wrap"><table>
           <thead><tr><th class="rowlabel"></th><th class="niosh-col">500</th><th class="niosh-col">1000</th><th>2000</th><th>3000</th><th>4000</th><th class="niosh-col">6000</th><th>Avg</th></tr></thead>
           <tbody>
-            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
-            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td><input type="number" class="avg-in" data-ear="R" data-test="base" data-avg="1" inputmode="decimal" step="any" aria-label="Right ear baseline average"></td></tr>
+            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="R" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="R" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td><input type="number" class="avg-in" data-ear="R" data-test="cur" data-avg="1" inputmode="decimal" step="any" aria-label="Right ear current average"></td></tr>
             <tr class="sep"><td class="rowlabel">Change</td><td class="niosh-col" id="R-d-500">–</td><td class="niosh-col" id="R-d-1000">–</td><td id="R-d-2000">–</td><td id="R-d-3000">–</td><td id="R-d-4000">–</td><td class="niosh-col" id="R-d-6000">–</td><td class="avg" id="R-d-avg">–</td></tr>
           </tbody>
         </table></div>
-        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz.</div>
+        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz. It fills in from the thresholds, or you can type it.</div>
         <div class="result-pair"><div class="result" id="R-result"></div><div class="result" id="R-result-x"></div></div>
         <div class="result niosh-box" id="R-niosh"></div>
       </div>
@@ -279,12 +280,12 @@
         <div class="table-wrap"><table>
           <thead><tr><th class="rowlabel"></th><th class="niosh-col">500</th><th class="niosh-col">1000</th><th>2000</th><th>3000</th><th>4000</th><th class="niosh-col">6000</th><th>Avg</th></tr></thead>
           <tbody>
-            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
-            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td></td></tr>
+            <tr><td class="rowlabel">Baseline</td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="base" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="base" data-f="6000" inputmode="numeric" step="5"></td><td><input type="number" class="avg-in" data-ear="L" data-test="base" data-avg="1" inputmode="decimal" step="any" aria-label="Left ear baseline average"></td></tr>
+            <tr><td class="rowlabel">Current</td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="500" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="1000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="2000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="3000" inputmode="numeric" step="5"></td><td><input type="number" data-ear="L" data-test="cur" data-f="4000" inputmode="numeric" step="5"></td><td class="niosh-col"><input type="number" data-ear="L" data-test="cur" data-f="6000" inputmode="numeric" step="5"></td><td><input type="number" class="avg-in" data-ear="L" data-test="cur" data-avg="1" inputmode="decimal" step="any" aria-label="Left ear current average"></td></tr>
             <tr class="sep"><td class="rowlabel">Change</td><td class="niosh-col" id="L-d-500">–</td><td class="niosh-col" id="L-d-1000">–</td><td id="L-d-2000">–</td><td id="L-d-3000">–</td><td id="L-d-4000">–</td><td class="niosh-col" id="L-d-6000">–</td><td class="avg" id="L-d-avg">–</td></tr>
           </tbody>
         </table></div>
-        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz.</div>
+        <div class="note avg-note">Avg uses 2000, 3000 and 4000 Hz. It fills in from the thresholds, or you can type it.</div>
         <div class="result-pair"><div class="result" id="L-result"></div><div class="result" id="L-result-x"></div></div>
         <div class="result niosh-box" id="L-niosh"></div>
       </div>
@@ -345,9 +346,9 @@
             <table>
               <thead><tr><th class="rowlabel"></th><th>2000</th><th>3000</th><th>4000</th><th>Avg</th></tr></thead>
               <tbody>
-                <tr><td class="rowlabel">Current</td><td id="R-c-2000"></td><td id="R-c-3000"></td><td id="R-c-4000"></td><td></td></tr>
-                <tr><td class="rowlabel">− Allowance</td><td id="R-a-2000"></td><td id="R-a-3000"></td><td id="R-a-4000"></td><td></td></tr>
-                <tr><td class="rowlabel">Adjusted</td><td id="R-j-2000"></td><td id="R-j-3000"></td><td id="R-j-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">Current</td><td id="R-c-2000"></td><td id="R-c-3000"></td><td id="R-c-4000"></td><td id="R-c-avg"></td></tr>
+                <tr><td class="rowlabel">− Allowance</td><td id="R-a-2000"></td><td id="R-a-3000"></td><td id="R-a-4000"></td><td id="R-a-avg"></td></tr>
+                <tr><td class="rowlabel">Adjusted</td><td id="R-j-2000"></td><td id="R-j-3000"></td><td id="R-j-4000"></td><td id="R-j-avg"></td></tr>
                 <tr class="sep"><td class="rowlabel">Change</td><td id="R-x-2000"></td><td id="R-x-3000"></td><td id="R-x-4000"></td><td class="avg" id="R-x-avg"></td></tr>
               </tbody>
             </table>
@@ -358,9 +359,9 @@
             <table>
               <thead><tr><th class="rowlabel"></th><th>2000</th><th>3000</th><th>4000</th><th>Avg</th></tr></thead>
               <tbody>
-                <tr><td class="rowlabel">Current</td><td id="L-c-2000"></td><td id="L-c-3000"></td><td id="L-c-4000"></td><td></td></tr>
-                <tr><td class="rowlabel">− Allowance</td><td id="L-a-2000"></td><td id="L-a-3000"></td><td id="L-a-4000"></td><td></td></tr>
-                <tr><td class="rowlabel">Adjusted</td><td id="L-j-2000"></td><td id="L-j-3000"></td><td id="L-j-4000"></td><td></td></tr>
+                <tr><td class="rowlabel">Current</td><td id="L-c-2000"></td><td id="L-c-3000"></td><td id="L-c-4000"></td><td id="L-c-avg"></td></tr>
+                <tr><td class="rowlabel">− Allowance</td><td id="L-a-2000"></td><td id="L-a-3000"></td><td id="L-a-4000"></td><td id="L-a-avg"></td></tr>
+                <tr><td class="rowlabel">Adjusted</td><td id="L-j-2000"></td><td id="L-j-3000"></td><td id="L-j-4000"></td><td id="L-j-avg"></td></tr>
                 <tr class="sep"><td class="rowlabel">Change</td><td id="L-x-2000"></td><td id="L-x-3000"></td><td id="L-x-4000"></td><td class="avg" id="L-x-avg"></td></tr>
               </tbody>
             </table>
@@ -447,11 +448,34 @@ const signed = n => (n > 0 ? "+" : "") + n;
 const fmtAvg = n => { const r = Math.round(n * 100) / 100; return (r > 0 ? "+" : "") + r.toFixed(2) + " dB"; };
 
 function readEar(ear) {
-  const data = { base: {}, cur: {} };
-  document.querySelectorAll(`#stsCard input[data-ear="${ear}"]`).forEach(inp => {
+  const data = { base: {}, cur: {}, manual: {}, full: {} };
+  document.querySelectorAll(`#stsCard input[data-ear="${ear}"][data-f]`).forEach(inp => {
     data[inp.dataset.test][inp.dataset.f] = num(inp.value);
   });
-  data.complete = STS_FREQS.every(f => data.base[f] !== null && data.cur[f] !== null);
+  // Average at 2000/3000/4000: typed directly, or worked out from the three thresholds
+  ["base", "cur"].forEach(t => {
+    const box = document.querySelector(`#stsCard .avg-in[data-ear="${ear}"][data-test="${t}"]`);
+    const full = STS_FREQS.every(f => data[t][f] !== null);
+    data.full[t] = full;
+    if (box.dataset.mode === "manual" && num(box.value) !== null) {
+      data[t + "Avg"] = num(box.value);
+      data.manual[t] = true;
+      box.classList.remove("auto");
+    } else if (full) {
+      const avg = STS_FREQS.reduce((a, f) => a + data[t][f], 0) / 3;
+      data[t + "Avg"] = avg;
+      data.manual[t] = false;
+      box.dataset.mode = "auto";
+      box.value = String(round2(avg));
+      box.classList.add("auto");
+    } else {
+      data[t + "Avg"] = null;
+      data.manual[t] = false;
+      if (box.dataset.mode !== "manual") { box.value = ""; box.classList.remove("auto"); }
+    }
+  });
+  data.perFreq = data.full.base && data.full.cur && !data.manual.base && !data.manual.cur;
+  data.complete = data.baseAvg !== null && data.curAvg !== null;
   return data;
 }
 
@@ -494,12 +518,12 @@ function calcSTS() {
     calcNIOSH(ear, d);
     if (!d.complete) {
       $(`${ear}-d-avg`).textContent = "–";
-      ["r", "x"].forEach(m => box($(`${ear}-result${m === "x" ? "-x" : ""}`), "", METHODS[m].label, "", "Enter baseline and current thresholds."));
+      ["r", "x"].forEach(m => box($(`${ear}-result${m === "x" ? "-x" : ""}`), "", METHODS[m].label, "", "Enter thresholds or averages for baseline and current."));
       stsState[ear] = null;
       return;
     }
-    const sum = STS_FREQS.reduce((acc, f) => acc + (d.cur[f] - d.base[f]), 0);
-    const avg = sum / 3;
+    const avg = d.curAvg - d.baseAvg;
+    const sum = avg * 3;
     $(`${ear}-d-avg`).textContent = fmtAvg(avg);
     const sts = {};
     ["r", "x"].forEach(m => {
@@ -565,22 +589,29 @@ function calcAgeInner() {
     const s = stsState[ear];
     if (!s) {
       STS_FREQS.forEach(f => ["c","a","j","x"].forEach(k => $(`${ear}-${k}-${f}`).textContent = "–"));
-      $(`${ear}-x-avg`).textContent = "–";
+      ["c","a","j","x"].forEach(k => $(`${ear}-${k}-avg`).textContent = "–");
       ["r", "x"].forEach(m => box($(`${ear}-cresult${m === "x" ? "-x" : ""}`), "", METHODS[m].label, "", "Thresholds incomplete in Step 1."));
       return;
     }
-    let sum = 0;
     ageState = ageState || {};
+    const meanAllow = STS_FREQS.reduce((acc, f) => acc + allow[f], 0) / 3;
     STS_FREQS.forEach(f => {
-      const adj = s.data.cur[f] - allow[f];
-      const chg = adj - s.data.base[f];
-      sum += chg;
-      $(`${ear}-c-${f}`).textContent = s.data.cur[f];
       $(`${ear}-a-${f}`).textContent = allow[f];
-      $(`${ear}-j-${f}`).textContent = adj;
-      $(`${ear}-x-${f}`).textContent = signed(chg);
+      if (s.data.perFreq) {
+        const adj = s.data.cur[f] - allow[f];
+        $(`${ear}-c-${f}`).textContent = s.data.cur[f];
+        $(`${ear}-j-${f}`).textContent = adj;
+        $(`${ear}-x-${f}`).textContent = signed(adj - s.data.base[f]);
+      } else {
+        ["c", "j", "x"].forEach(k => $(`${ear}-${k}-${f}`).textContent = "–");
+      }
     });
-    const avg = sum / 3;
+    const adjAvg = s.data.curAvg - meanAllow;
+    const avg = adjAvg - s.data.baseAvg;
+    const sum = avg * 3;
+    $(`${ear}-c-avg`).textContent = String(round2(s.data.curAvg));
+    $(`${ear}-a-avg`).textContent = String(round2(meanAllow));
+    $(`${ear}-j-avg`).textContent = String(round2(adjAvg));
     $(`${ear}-x-avg`).textContent = fmtAvg(avg);
     ageState[ear] = { sum, avg, sts: { r: round2(avg) >= 10, x: avg >= 10 } };
     ["r", "x"].forEach(m => {
@@ -725,8 +756,7 @@ function renderNext() {
   if (stsEars.length) {
     html += `<h4>OSHA 300 log recordability</h4><div class="rec">`;
     stsEars.forEach(e => {
-      const cur = stsState[e].data.cur;
-      const lvl = round2(STS_FREQS.reduce((a, f) => a + cur[f], 0) / 3);
+      const lvl = round2(stsState[e].data.curAvg);
       const rec = lvl >= 25;
       html += `<div class="result ${rec ? "yes" : "no"}" style="margin-top:0"><span class="rlabel">${cap(EAR_NAME[e])}</span><strong>${rec ? "Recordable if work-related" : "Not recordable"}</strong>Current hearing level ${lvl.toFixed(2)} dB HL at 2000, 3000 and 4000 Hz (${rec ? "25 dB or more" : "below 25 dB"}; never age-corrected).</div>`;
     });
@@ -744,7 +774,17 @@ function renderNext() {
 }
 
 /* ---------- wiring ---------- */
-document.querySelectorAll("#stsCard input").forEach(i => i.addEventListener("input", calcSTS));
+document.querySelectorAll("#stsCard input[data-f]").forEach(i => i.addEventListener("input", () => {
+  if (STS_FREQS.includes(Number(i.dataset.f))) {
+    const box = document.querySelector(`#stsCard .avg-in[data-ear="${i.dataset.ear}"][data-test="${i.dataset.test}"]`);
+    box.dataset.mode = "auto";
+  }
+  calcSTS();
+}));
+document.querySelectorAll("#stsCard .avg-in").forEach(i => i.addEventListener("input", () => {
+  i.dataset.mode = i.value === "" ? "auto" : "manual";
+  calcSTS();
+}));
 ["ageBase", "ageCur"].forEach(id => $(id).addEventListener("input", calcAge));
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
   sex = b.dataset.sex;
@@ -774,6 +814,7 @@ $("nioshToggle").addEventListener("change", e => {
 
 $("resetBtn").addEventListener("click", () => {
   order.forEach(i => i.value = "");
+  document.querySelectorAll(".avg-in").forEach(b => { b.dataset.mode = "auto"; b.classList.remove("auto"); });
   sex = null;
   document.querySelectorAll(".seg button").forEach(x => x.classList.remove("on"));
   calcSTS();
